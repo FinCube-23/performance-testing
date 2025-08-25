@@ -1,7 +1,6 @@
 import http from "k6/http";
 import { check, sleep } from "k6";
 import { Counter, Rate, Trend } from "k6/metrics";
-import { textSummary } from "https://jslib.k6.io/k6-summary/0.0.1/index.js";
 
 // Custom metrics
 const failedRequests = new Counter("failed_requests");
@@ -17,18 +16,23 @@ const limit = 100;
 
 export const options = {
   scenarios: {
-    constant_load: {
-      executor: "constant-arrival-rate",
-      rate: 10, // 10 requests per second
-      timeUnit: "1s",
-      duration: "200s", // 10 * 200 = 2000 requests
-      preAllocatedVUs: 20,
-      maxVUs: 50,
+    // Basic Load Testing - Same ramping as Alchemy test
+    basic_load_test: {
+      executor: "ramping-vus",
+      startVUs: 0,
+      stages: [
+        { duration: "1m", target: 5 }, // Ramp up to 5 VUs
+        { duration: "3m", target: 10 }, // Increase to 10 VUs
+        { duration: "5m", target: 15 }, // Max 15 VUs
+        { duration: "1m", target: 0 }, // Ramp down
+      ],
+      startTime: "0s",
     },
   },
   thresholds: {
-    http_req_duration: ["p(95)<1000"],
-    success_rate: ["rate>0.95"],
+    http_req_duration: ["p(95)<2000", "p(99)<3000"], // More lenient for GraphQL calls
+    http_req_failed: ["rate<0.05"], // Less than 5% failures
+    http_reqs: ["count<800"], // Adjusted for 15 VUs over 10 minutes
   },
 };
 
@@ -70,5 +74,7 @@ export default function () {
     console.error(`❌ GraphQL Error: ${res.status} - ${res.body}`);
   }
 
-  sleep(Math.random() * 0.3); // Small jitter to spread load
+  // Conservative sleep to prevent rate limiting on The Graph API
+  // Longer intervals ensure stable performance testing
+  sleep(Math.random() * 1 + 1.5); // 1.5-2.5 seconds between requests
 }

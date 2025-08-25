@@ -1,55 +1,42 @@
 import http from "k6/http";
 import { check, sleep } from "k6";
 
-const BEARER_TOKEN = "Your Bearer Token";
-
-// Load Test (steady load, e.g., 15 VUs for 2 minutes)
+// Modified for batch transaction testing
 export let options = {
   scenarios: {
-    load_test: {
-      executor: "constant-vus",
-      vus: 15,
-      duration: "2m",
+    batch_transaction_test: {
+      executor: "shared-iterations",
+      vus: 1, // Single VU to control the batching logic
+      iterations: 40, // 20 POST requests total (20 x 15 = 300 transactions)
+      maxDuration: "1h", // Safety timeout
     },
   },
 };
 
-function getAuthHeaders() {
-  return {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${BEARER_TOKEN}`,
-    },
-  };
-}
-
 export default function () {
-  const payload = JSON.stringify("Your payload as an object");
+  const confirmationDelay = 15; // seconds
 
-  // query example
-  const query = http.get(
-    "Your query endpoint URL"
-    // payload and auth headers if required
-    // payload,
-    // getAuthHeaders()
+  console.log(`Making POST request that triggers 15 transactions...`);
+
+  // Single POST request that creates 15 transactions
+  const response = http.post(
+    "http://localhost:3000/web3-proxy-service/web3-dao-proxy/place-proposal"
   );
 
-  check(query, {
-    "query status 200": (r) => r.status === 200,
+  // Check if the POST request was successful
+  const success = check(response, {
+    "POST request status 201": (r) => r.status === 201,
   });
 
-  // post example
-  const post = http.post(
-    "Your post endpoint URL"
-    // payload and auth headers if required
-    // payload,
-    // getAuthHeaders());
+  if (success) {
+    console.log(`POST request successful - 15 transactions initiated`);
+  } else {
+    console.log(`POST request failed - status: ${response.status}`);
+  }
+
+  // Wait for all 15 transactions to be confirmed before next iteration
+  console.log(
+    `Waiting ${confirmationDelay} second for transaction confirmation...`
   );
-
-  check(post, {
-    "post status 200": (r) => r.status === 200,
-  });
-
-  // sleeper after each iteration
-  sleep(1);
+  sleep(confirmationDelay);
 }

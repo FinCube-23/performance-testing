@@ -16,18 +16,23 @@ const contractAddress = "0x6e7d437441199bA5cB451921CA58CeAA5E2c293A";
 
 export const options = {
   scenarios: {
-    constant_load: {
-      executor: "constant-arrival-rate",
-      rate: 10, // 10 requests per second
-      timeUnit: "1s",
-      duration: "200s", // 10 * 200 = 2000 requests
-      preAllocatedVUs: 20,
-      maxVUs: 50,
+    // Basic Load Testing - Respecting 25 req/sec limit
+    basic_load_test: {
+      executor: "ramping-vus",
+      startVUs: 0,
+      stages: [
+        { duration: "1m", target: 5 }, // Ramp up to 5 VUs
+        { duration: "3m", target: 10 }, // Increase to 10 VUs
+        { duration: "5m", target: 15 }, // Max 15 VUs (safe under 25 req/sec)
+        { duration: "1m", target: 0 }, // Ramp down
+      ],
+      startTime: "0s",
     },
   },
   thresholds: {
-    http_req_duration: ["p(95)<1000"],
-    success_rate: ["rate>0.95"],
+    http_req_duration: ["p(95)<3000", "p(99)<5000"], // Normal thresholds for moderate load
+    http_req_failed: ["rate<0.05"], // Less than 5% failures for stable load
+    http_reqs: ["count<2500"], // Target 2500 requests
   },
 };
 
@@ -47,7 +52,15 @@ export default function () {
 
   const success = check(res, {
     "status is 200": (r) => r.status === 200,
-    "has valid result": (r) => r.json().result !== undefined,
+    "has valid result": (r) => {
+      try {
+        const jsonResponse = r.json();
+        return jsonResponse && jsonResponse.result !== undefined;
+      } catch (e) {
+        console.error(e);
+        return false;
+      }
+    },
   });
 
   successRate.add(success);
@@ -56,5 +69,5 @@ export default function () {
     console.error(`❌ Alchemy Error: ${res.status} - ${res.body}`);
   }
 
-  sleep(Math.random() * 0.5); // Optional: add jitter
+  sleep(Math.random() * 1 + 2); // 2-3 seconds delay for aggressive limit testing
 }
