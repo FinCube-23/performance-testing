@@ -20,7 +20,7 @@ export default function () {
 
   // Single POST request that creates 15 transactions
   const response = http.post(
-    "http://localhost:3000/web3-proxy-service/web3-dao-proxy/place-proposal"
+    "http://172.16.231.80:3000/dao-service/proposal-service"
   );
 
   // Check if the POST request was successful
