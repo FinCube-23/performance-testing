@@ -17,8 +17,8 @@ const transactions = new SharedArray("transactions", function () {
 
 // Test configuration
 export const options = {
-  vus: 30, // 20 virtual users to handle increased load
-  iterations: 1200, // Total 1200 iterations (one per transaction hash)
+  vus: 30, // 30 virtual users to handle increased load
+  iterations: 1800, // Total 1800 iterations (one per transaction hash)
   duration: "15m", // Increased maximum duration for more transactions
   thresholds: {
     http_req_duration: ["p(95)<5000"], // 95% of requests must complete within 5s

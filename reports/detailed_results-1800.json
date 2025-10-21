@@ -1,0 +1,24 @@
+{
+  "total_transactions": 1800,
+  "confirmation_source": {
+    "successful": 1800,
+    "failed": 0,
+    "success_rate": 100.0
+  },
+  "transaction_confirmation_trace": {
+    "successful": 1748,
+    "failed": 52,
+    "success_rate": 97.11111111111111
+  },
+  "both_metrics": {
+    "successful": 1748,
+    "failed": 52,
+    "success_rate": 97.11111111111111
+  },
+  "source_distribution": {
+    "graph": 1800
+  },
+  "status_distribution": {
+    "1": 1800
+  }
+}

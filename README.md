@@ -92,6 +92,51 @@ Click **Save & Test**.
 
 ---
 
+## 9. Onchain Sync Success Rate Analysis
+
+### Overview
+
+This repository includes comprehensive Python-based analysis tools to evaluate the success rates of onchain synchronization for the audit trail service.
+
+### Success Criteria
+
+- **Confirmation Source Success**: `confirmation_source != "pending_source"`
+- **Transaction Confirmation Trace Success**: `transaction_confirmation_trace IS NOT NULL`
+
+### Running the Analysis
+
+```sh
+python3 analysis/compare_success_rates.py --input transactions.csv --outdir reports
+```
+
+### Generated Reports
+
+The analysis generates:
+
+- **4 High-Quality Visualizations** (PNG, 300 DPI)
+  - Success Rate Comparison
+  - Sync Duration Analysis
+  - Transaction Trace Analysis
+  - Advanced Performance Metrics
+- **4 CSV Reports** with detailed metrics
+- **1 JSON Report** with complete results
+- **Comprehensive Analysis Report** (Markdown)
+
+### Key Metrics Tracked
+
+- Overall success rates (confirmation source vs transaction trace)
+- Sync duration statistics and distributions
+- Service-level trace analysis
+- Time-based performance patterns
+- Source-specific success rates
+
+### Documentation
+
+- 📊 [Full Analysis Report](reports/ANALYSIS_REPORT.md)
+- 📈 [Visualization Guide](reports/VISUALIZATION_GUIDE.md)
+
+---
+
 ## Useful Links
 
 - [k6 Documentation](https://k6.io/docs/)
