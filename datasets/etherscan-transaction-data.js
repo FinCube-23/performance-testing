@@ -3,11 +3,6 @@
 export const etherscanTransactionData = [
   {
     trx_hash:
-      "0x6955ae81c3573302db5919e9cc4703b9867a334b403613acc8813ff1d97e978d",
-    proposedWallet: "0x8152f498e91df80be19a28c83d8596f59fba80bd",
-  },
-  {
-    trx_hash:
       "0x327b2b2883cbf6caefffebe5fe31f3135964c527c04f08e5470410f23e41512b",
     proposedWallet: "0x8152f498e91df80be19a28c83d8596f59fba80bd",
   },

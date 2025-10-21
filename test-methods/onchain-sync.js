@@ -8,8 +8,7 @@ import { etherscanTransactionData } from "../datasets/etherscan-transaction-data
 const BASE_URL_DAO = "http://172.16.231.80:3000/dao-service/proposal-service";
 const BASE_URL_UMS =
   "http://172.16.231.80:3000/user-management-service/api/organizations/onchain-verifications";
-const BEARER_TOKEN =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzYwNzAxOTIxLCJpYXQiOjE3NjA2MTU1MjEsImp0aSI6ImUxMWE5NjhmYjJlOTQyN2M5ODgyYjQwNDY2M2Y0NzBkIiwidXNlcl9pZCI6IjIifQ.6Fjq-yLCOLKC87NVT-oOVeMe25nJukoHr16nvgUacI0";
+const BEARER_TOKEN = "";
 
 // Use SharedArray to share transaction data among VUs efficiently
 const transactions = new SharedArray("transactions", function () {
@@ -18,8 +17,8 @@ const transactions = new SharedArray("transactions", function () {
 
 // Test configuration
 export const options = {
-  vus: 10, // 10 virtual users to handle increased load
-  iterations: 300, // Total 300 iterations (one per transaction hash)
+  vus: 30, // 20 virtual users to handle increased load
+  iterations: 1200, // Total 1200 iterations (one per transaction hash)
   duration: "15m", // Increased maximum duration for more transactions
   thresholds: {
     http_req_duration: ["p(95)<5000"], // 95% of requests must complete within 5s
@@ -74,7 +73,17 @@ export default function (data) {
   // Send ALL transactions to DAO Service to ensure all 2500 are saved to PostgreSQL
   const daoPayload = {
     proposal_type: "membership",
-    metadata: "string",
+    metadata: JSON.stringify({
+      description: `Membership proposal for transaction ${
+        currentTransactionIndex + 1
+      }`,
+      timestamp: new Date().toISOString(),
+      proposalId: `PROP-${Date.now()}-${currentTransactionIndex}`,
+      priority: ["high", "medium", "low"][Math.floor(Math.random() * 3)],
+      category: ["governance", "treasury", "membership"][
+        Math.floor(Math.random() * 3)
+      ],
+    }),
     proposer_address: "0x8152f498E91df80bE19a28C83d8596F59FbA80bD",
     trx_hash: trxHash,
   };
