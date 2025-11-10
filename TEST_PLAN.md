@@ -1,6 +1,6 @@
-# FinCube Blockchain Performance Test Plan
+# FinCube Performance Test Plan
 
-This document outlines the comprehensive performance testing strategy for the FinCube blockchain application, focusing on Web3 DAO proxy services and RPC endpoints.
+This document outlines the comprehensive performance testing strategy for FinCube, focusing on Web3 DAO proxy services, onchain-offchain synchronization and RPC endpoints.
 
 ## Test Objectives
 
@@ -8,7 +8,7 @@ This document outlines the comprehensive performance testing strategy for the Fi
 
 - **Validate transaction throughput** under various load conditions
 - **Measure response times** for critical blockchain operations
-- **Identify system bottlenecks** in the Web3 proxy service
+- **Identify system bottlenecks** in DAO Service, Audit Trail Service and User Management Service
 - **Ensure transaction confirmation reliability** during high-load scenarios
 - **Assess RPC endpoint performance** (Alchemy, The Graph)
 - **Evaluate scalability** with increasing number of services, event frequency, and dApp features
@@ -26,10 +26,8 @@ This document outlines the comprehensive performance testing strategy for the Fi
 
 ### In Scope
 
-- **Web3 DAO Proxy Service** (`/web3-dao-proxy/place-proposal`)
 - **DAO Service endpoints** (`/dao-service/proposal-service`)
 - **RPC Endpoints** (Alchemy Sepolia, The Graph Studio)
-- **Transaction batching** (15 transactions per request)
 - **Load, Stress, and Spike testing scenarios**
 - **Network confirmation delays**
 - **End-to-end transaction processing**
@@ -50,24 +48,20 @@ This document outlines the comprehensive performance testing strategy for the Fi
 
 - **Target Environment**: `http://localhost:3000` (local) and `http://172.16.231.80:3000` (remote)
 - **Blockchain Network**: Ethereum Sepolia Testnet
-- **RPC Provider**: Alchemy (`https://eth-sepolia.g.alchemy.com/v2/XuRKnbPuS-3qwal-CHNdMOcZzOr4PUSB`)
+- **RPC Provider**: Alchemy (`https://eth-sepolia.g.alchemy.com/v2/<rpc-secrret>`)
 - **Graph Protocol**: The Graph Studio
 - **Load Testing Tool**: k6
 
 ### Test Data
 
-- **Total Transactions**: 150 per test run
-- **Batch Size**: 15 transactions per POST request
-- **Confirmation Delay**: 20 seconds between batches
+- **Total Transactions**: 1800
 - **Virtual Users**: 1-50 (depending on test type)
 
 ## Test Items & Endpoints
 
 ### Primary Endpoints
 
-- **(POST)** `http://localhost:3000/web3-proxy-service/web3-dao-proxy/place-proposal`
 - **(POST)** `http://localhost:3000/dao-service/proposal-service`
-- **(GET)** `http://localhost:3000/dao-service/proposal-service`
 
 ### RPC Endpoints
 
@@ -156,9 +150,7 @@ Objective: Long-duration stability testing
 ### Pre-Test Setup
 
 1. Verify all endpoints are accessible
-2. Confirm testnet ETH balance is sufficient
-3. Validate RPC connection limits
-4. Set up monitoring dashboards
+2. Validate RPC connection limits
 
 ### Test Sequence
 
@@ -169,21 +161,7 @@ Objective: Long-duration stability testing
 5. **Extended Load** → Stability validation
 6. **Consistency Checks** → Verify data integrity
 
-### Delay Handling
-
-- **20-second delay** after each POST request to `/web3-dao-proxy/place-proposal`
-- Allows sufficient time for transaction confirmation
-- Prevents overwhelming the blockchain network
-
 ## Success Criteria
-
-### Functional Requirements
-
-- ✅ All POST requests return appropriate status codes (200/201)
-- ✅ Transaction confirmation rate ≥ 99%
-- ✅ Zero data corruption or lost transactions
-- ✅ Proper error handling and recovery
-- ✅ On-chain and off-chain state consistency
 
 ### Performance Benchmarks
 
@@ -195,20 +173,6 @@ Objective: Long-duration stability testing
 | CPU Utilization     | < 60%      | 60-80%      | > 80%    |
 | Memory Usage        | < 70%      | 70-85%      | > 85%    |
 
-## Risk Assessment & Mitigation
-
-### High Risk Items
-
-- **Blockchain network congestion** → Use Sepolia testnet, monitor network status
-- **RPC rate limiting** → Monitor usage, implement backoff strategies
-- **Transaction fee depletion** → Maintain adequate testnet ETH balance
-
-### Medium Risk Items
-
-- **Network latency variations** → Run tests during consistent network conditions
-- **Third-party service outages** → Have backup RPC endpoints configured
-- **Insufficient test duration** → Allocate buffer time for extended testing
-
 ## Test Tools & Scripts
 
 ### k6 Test Scripts
@@ -219,9 +183,7 @@ rpc-tests.js/
 └── graph-test.js       # The Graph Protocol testing
 
 test-methods/
-├── load-test.js        # Transaction batch load testing
-├── stress-test.js      # High-load breaking point testing
-└── spike-test.js       # Traffic surge simulation
+├── onchain-sync.js        # Onchain and Offchain event synchronization
 ```
 
 ### Monitoring & Reporting
@@ -229,31 +191,91 @@ test-methods/
 - **k6 built-in metrics** (response times, throughput, errors)
 - **System monitoring** (`htop`, `docker stats`, cloud dashboards)
 - **Custom Grafana dashboard** (`dashboards/primary-dashboard.json`)
-- **Consistency validation scripts** for on-chain vs off-chain state
 
-## Test Schedule & Deliverables
+## Actual Test Execution & Results
 
-### Execution Timeline
+### Tests Completed
 
-| Phase              | Duration | Activities                          |
-| ------------------ | -------- | ----------------------------------- |
-| **Setup**          | 4 hours  | Environment prep, script validation |
-| **RPC Testing**    | 2 hours  | Endpoint baseline validation        |
-| **Load Testing**   | 4 hours  | Normal operation scenarios          |
-| **Stress Testing** | 4 hours  | Breaking point identification       |
-| **Analysis**       | 8 hours  | Results analysis and documentation  |
+#### 1. Onchain Synchronization Performance Tests ✅
 
-### Expected Deliverables
+**Test Configuration:**
 
-- **Performance Test Summary Report**
-- **System Bottleneck Analysis**
-- **Scalability Recommendations**
-- **Monitoring Dashboard Export**
-- **Test Execution Logs & Metrics**
+- **Virtual Users**: 30 concurrent users
+- **Total Iterations**: 1200 transactions per test run
+- **Test Duration**: 15 minutes maximum
+- **Transaction Source**: 2500 unique Etherscan transactions
+- **Test Variants**: 1200, 1400, 1600, 1800 transaction loads
 
----
+**Test Script:** `test-methods/onchain-sync.js`
 
-**Document Version**: 2.0  
-**Last Updated**: August 11, 2025  
-**Prepared for**: FinCube Blockchain Performance Testing  
-**Next Review**: Post-execution analysis
+**Endpoints Tested:**
+
+- DAO Service: `http://172.16.231.80:3000/dao-service/proposal-service`
+
+#### 3. RPC Endpoint Validation ✅
+
+**Scripts Available:**
+
+- `rpc-tests/alchemy-test.js` - Alchemy Sepolia endpoint validation
+- `rpc-tests/graph-test.js` - The Graph Protocol testing
+
+### Test Infrastructure
+
+**Environment Setup:**
+
+- Python 3.12 with virtual environment (`.venv`)
+- Required packages: pandas, numpy, matplotlib, seaborn, scipy
+- k6 load testing tool installed
+- InfluxDB (Docker) for metrics storage
+- Grafana (Docker) for visualization
+
+**Monitoring:**
+
+- Primary Grafana dashboard: `dashboards/primary-dashboard.json`
+- InfluxDB database: `k6`
+- Real-time metrics collection during test execution
+
+### Analysis Capabilities
+
+**Performance Analysis Script:** `scripts/analyze_performance.py`
+
+**Capabilities:**
+
+- Automatic time unit detection (ns, us, ms, s)
+- Bootstrap confidence intervals for percentiles
+- CDF plots for latency distribution
+- Time-series throughput and latency analysis
+- Comparative analysis (Fincube vs baseline)
+- Error rate calculation
+- Per-second metrics aggregation
+
+**Features:**
+
+- Auto-detection of column names
+- Flexible input options
+- Multiple load comparison
+- Publication-quality plots (150 DPI)
+- Comprehensive statistical metrics (p50, p90, p95, p99 with CIs)
+
+### Performance Insights & Recommendations
+
+**Strengths:**
+
+- ✅ Very high success rate (98.67%)
+- ✅ Robust synchronization mechanism
+- ✅ Complete trace coverage for successful transactions
+- ✅ Handles 300+ concurrent syncs effectively
+
+**Areas for Improvement:**
+
+- ⚠️ High sync duration variability (324s standard deviation)
+- ⚠️ Tail latency optimization needed (some >1000s syncs)
+- ⚠️ 4 failed synchronizations require investigation
+- ⚠️ Pending source transitions need retry logic
+
+**Recommended SLAs:**
+
+- **Target Success Rate**: Maintain >98%
+- **P50 Duration Target**: <420 seconds (7 minutes)
+- **P95 Duration Target**: <800 seconds (13 minutes)
+- **P99 Duration Target**: <1000 seconds (16 minutes)

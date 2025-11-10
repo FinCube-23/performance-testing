@@ -1,0 +1,4 @@
+,source_success,source_success,trace_success,trace_success,both_success,both_success,sync_duration_seconds,sync_duration_seconds,sync_duration_seconds
+,sum,count,sum,count,sum,count,mean,median,std
+confirmation_source,,,,,,,,,
+graph,1200,1200,1200,1200,1200,1200,630.77,606.42,330.81
